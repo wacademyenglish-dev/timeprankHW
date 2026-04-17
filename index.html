@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WOLFLIX Homework | The Office: Time Prank</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700;800;900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        netflixRed: '#E50914',
+                        officeBlue: '#0055A4',
+                        officeDark: '#0B1C2E',
+                        officeGray: '#4A5568',
+                        officePaper: '#F4F5F7',
+                        officeYellow: '#F6E05E',
+                        success: '#2b9348',
+                        error: '#E53E3E'
+                    },
+                    fontFamily: {
+                        bebas: ['"Bebas Neue"', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                        typewriter: ['"Courier Prime"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        /* FIXED VIEWPORT - STRICTLY NO BODY SCROLLING */
+        body {
+            background-color: #0B1C2E;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            user-select: none;
+        }
+
+        /* Dynamic Background System */
+        #dynamic-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80');
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            opacity: 0.15; z-index: 0; transition: background-image 1.5s ease-in-out, opacity 1.5s ease-in-out;
+            pointer-events: none; filter: contrast(1.1) brightness(0.6) grayscale(0.5);
+        }
+        #bg-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, #0B1C2E 100%),
+                        linear-gradient(to top, #0B1C2E 0%, rgba(11,28,46,0.7) 50%, #0B1C2E 100%);
+            z-index: 1; pointer-events: none;
+        }
+
+        /* Step Management */
+        main {
+            flex: 1; position: relative; width: 100%; overflow: hidden; display: flex; align-items: center; justify-content: center; z-index: 10;
+        }
+        .step-container {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: none; opacity: 0;
+            flex-direction: column; align-items: center; justify-content: center; padding: 1rem;
+        }
+        @media (min-width: 768px) { .step-container { padding: 2rem; } }
+        
+        .step-container.active {
+            display: flex; opacity: 1; animation: focusIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes focusIn {
+            from { opacity: 0; transform: scale(0.97) translateY(15px); filter: blur(3px); }
+            to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+
+        /* Glassmorphism Panel - Corporate Style */
+        .glass-panel {
+            background: rgba(11, 28, 46, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(244, 245, 247, 0.15); 
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(244, 245, 247, 0.1);
+            max-width: 950px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 1.5rem; position: relative;
+        }
+        @media (min-width: 768px) { .glass-panel { padding: 3rem; border-radius: 16px; border: 2px solid rgba(0, 85, 164, 0.3); } }
+        
+        .glass-panel::-webkit-scrollbar { width: 6px; }
+        .glass-panel::-webkit-scrollbar-track { background: transparent; }
+        .glass-panel::-webkit-scrollbar-thumb { background: rgba(0, 85, 164, 0.5); border-radius: 10px; }
+
+        .netflix-title { font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px; }
+        .office-gradient { background: linear-gradient(90deg, #0055A4, #F4F5F7, #4A5568); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+        /* Capsules */
+        .capsule {
+            display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px;
+            background: rgba(0, 85, 164, 0.2); border: 1px solid #0055A4; border-radius: 4px;
+            font-size: 0.9rem; font-weight: bold; letter-spacing: 0.05em; color: #FFF;
+            text-transform: uppercase; font-family: 'Courier Prime', monospace;
+        }
+        .capsule.light { border-color: #F4F5F7; background: rgba(244, 245, 247, 0.1); color: #F4F5F7;}
+
+        /* Action Buttons */
+        .btn-netflix {
+            background-color: #0055A4; color: #FFF; font-weight: 800;
+            padding: 12px 24px; border-radius: 4px; transition: all 0.3s; 
+            text-transform: uppercase; letter-spacing: 1px; font-size: 1rem; border: none; cursor: pointer;
+            font-family: 'Courier Prime', monospace; box-shadow: 0 4px 15px rgba(0, 85, 164, 0.4);
+        }
+        .btn-netflix:hover { background-color: #004080; transform: scale(1.02); box-shadow: 0 6px 20px rgba(0, 85, 164, 0.6); }
+        .btn-netflix:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Quiz Options */
+        .quiz-option {
+            background: #F4F5F7; color: #1A202C; border: 1px solid #CBD5E0;
+            padding: 12px 16px; border-radius: 4px; cursor: pointer; transition: all 0.2s;
+            font-size: 1.1rem; font-weight: bold; display: flex; align-items: center; gap: 10px;
+            font-family: 'Inter', sans-serif; box-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .quiz-option:hover { border-color: #0055A4; transform: translateX(5px); box-shadow: 4px 4px 8px rgba(0,0,0,0.2); }
+        .quiz-option.correct { border-color: #2b9348; background: #C6F6D5; color: #22543D; }
+        .quiz-option.incorrect { border-color: #E53E3E; background: #FED7D7; color: #822727; animation: shake 0.4s; }
+
+        /* Typewriter Buttons */
+        .typewriter-btn {
+            background: #1A202C; border: 2px solid #4A5568; color: #E2E8F0; padding: 12px 20px; 
+            border-radius: 50%; width: 80px; height: 80px; cursor: pointer; transition: all 0.2s; 
+            font-weight: bold; font-size: 1.1rem; font-family: 'Courier Prime', monospace; 
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #000;
+        }
+        @media (min-width: 768px) { .typewriter-btn { width: 100px; height: 100px; font-size: 1.3rem; } }
+        .typewriter-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #000; background: #F4F5F7; color: #000; border-color: #F4F5F7; }
+        .typewriter-btn.activated { background: #F4F5F7; border-color: #F4F5F7; color: #000; transform: translateY(2px); box-shadow: 0 2px 0 #000; }
+
+        /* Sentence Builder */
+        .sb-word {
+            background: #F4F5F7; color: #0B1C2E; font-weight: bold; padding: 10px 18px; border-radius: 2px;
+            cursor: pointer; user-select: none; transition: all 0.2s; border: 1px solid #CBD5E0;
+            font-size: 1.1rem; box-shadow: 2px 2px 5px rgba(0,0,0,0.2); font-family: 'Courier Prime', monospace;
+        }
+        .sb-word:hover { transform: translateY(-2px); border-color: #0055A4; }
+        .sb-dropzone { min-height: 80px; border: 2px dashed rgba(244, 245, 247, 0.3); padding: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; transition: all 0.3s; background: rgba(0,0,0,0.2); border-radius: 4px; }
+        .sb-dropzone.correct { border-color: #2b9348; background: rgba(43, 147, 72, 0.15); }
+        .sb-dropzone.incorrect { border-color: #E53E3E; background: rgba(229, 62, 62, 0.15); animation: shake 0.4s; }
+
+        /* Error Detection (Paper Shredder) */
+        .error-text { font-size: 1.5rem; line-height: 1.8; font-family: 'Courier Prime', monospace; }
+        .error-text span { cursor: pointer; padding: 2px 6px; border-radius: 2px; transition: all 0.3s; font-weight: bold; display: inline-block; background: rgba(255,255,255,0.1); }
+        .error-text span:hover { color: #E53E3E; background: rgba(229, 62, 62, 0.2); transform: scale(1.05); text-decoration: line-through; }
+        .error-text span.wrong-clicked { color: #F4F5F7; background: #2b9348; text-decoration: none; animation: pop 0.3s; }
+        .error-text span.correct-clicked { animation: shake 0.4s; color: #E53E3E; pointer-events: none; }
+
+        /* Chat Scenarios (SMS) */
+        .chat-bubble { max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 1.1rem; line-height: 1.4; margin-bottom: 12px; font-family: 'Inter', sans-serif;}
+        .chat-left { background: #E2E8F0; color: #1A202C; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-right { background: #0055A4; color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.15); color: #fff;} 100% { transform: scale(1); } }
+    </style>
+</head>
+<body class="text-base md:text-lg selection:bg-officeBlue selection:text-white">
+
+    <div id="dynamic-bg"></div>
+    <div id="bg-overlay"></div>
+
+    <header class="h-16 md:h-20 flex items-center justify-between px-4 md:px-8 shrink-0 relative z-20 bg-gradient-to-b from-[#0B1C2E]/95 to-transparent">
+        <div class="flex items-center gap-3 md:gap-5">
+            <span class="netflix-title text-2xl md:text-4xl text-netflixRed tracking-widest font-bold drop-shadow-md">WOLFLIX</span>
+            <span class="px-2 md:px-3 py-1 border border-officeYellow text-officeYellow rounded text-[10px] md:text-xs tracking-widest uppercase font-bold mt-1 bg-black/30">Homework</span>
+        </div>
+
+        <div class="flex-1 max-w-xl mx-6 md:mx-12 hidden lg:block">
+            <div class="h-1.5 md:h-2 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                <div id="progress-bar" class="h-full bg-officeBlue transition-all duration-500 ease-out" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 md:gap-6">
+            <button onclick="toggleFullscreen()" class="text-slate-400 hover:text-white transition-colors" title="Fullscreen">
+                <i data-lucide="maximize" class="w-5 h-5 md:w-6 md:h-6"></i>
+            </button>
+        </div>
+    </header>
+
+    <main id="lesson-container">
+
+        <!-- STEP 1: COVER -->
+        <section class="step-container active flex-col text-center" data-bg="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80">
+            <div class="flex flex-wrap justify-center gap-3 mb-6 md:mb-8">
+                <span class="capsule"><i data-lucide="bar-chart" class="w-4 h-4"></i> Level A2</span>
+                <span class="capsule light"><i data-lucide="clock" class="w-4 h-4"></i> HR Assessment</span>
+            </div>
+
+            <h1 class="netflix-title text-[4rem] sm:text-[6rem] md:text-[8rem] lg:text-[10rem] office-gradient drop-shadow-2xl mb-2 md:mb-4 leading-none text-center">
+                THE OFFICE
+            </h1>
+            <p class="text-xl sm:text-3xl md:text-5xl text-white font-light tracking-[0.2em] uppercase drop-shadow-lg mb-6 md:mb-8 font-typewriter">
+                Time Prank Assessment
+            </p>
+            
+            <button onclick="nextStep()" class="btn-netflix w-full sm:w-auto">Start Assessment</button>
+        </section>
+
+        <!-- STEP 2: BRIEFING -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel text-center border-t-4 border-officeYellow">
+                <h1 class="netflix-title text-4xl md:text-6xl text-white mb-4 md:mb-6 drop-shadow-lg">HR Memo</h1>
+                
+                <p class="text-base md:text-xl text-gray-300 leading-relaxed mb-6 md:mb-10 max-w-3xl mx-auto font-typewriter">
+                    Attention Employee. Please complete this assessment to verify your understanding of <strong class="text-officePaper">Irregular Past Verbs</strong> and <strong class="text-officePaper">Time Prepositions</strong> based on the recent "Time Prank" incident.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 text-left mb-6">
+                    <div class="bg-black/50 p-6 md:p-8 rounded border-l-4 border-officeBlue shadow-lg">
+                        <h3 class="font-bold text-white text-lg md:text-xl mb-3 flex items-center gap-2 font-typewriter"><i data-lucide="target" class="text-officeBlue w-5 h-5"></i> Targets</h3>
+                        <ul class="text-gray-300 space-y-2 text-sm md:text-base font-typewriter">
+                            <li>• Irregular Verbs (ate, fell, had)</li>
+                            <li>• Time Prepositions (at, in, before)</li>
+                            <li>• Future Plans ('gonna')</li>
+                        </ul>
+                    </div>
+                    <div class="bg-black/50 p-6 md:p-8 rounded border-l-4 border-netflixRed shadow-lg">
+                        <h3 class="font-bold text-white text-lg md:text-xl mb-3 flex items-center gap-2 font-typewriter"><i data-lucide="alert-triangle" class="text-netflixRed w-5 h-5"></i> Protocol</h3>
+                        <p class="text-gray-300 text-sm md:text-base leading-relaxed italic font-typewriter">Complete all 9 tasks successfully to clock out and go home.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 3: VOCAB QUIZ -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel text-center">
+                <div class="capsule mb-6" style="border-color:#0055A4; color:#0055A4; background: rgba(0,85,164,0.1);">Task 1: Incident Recall</div>
+                <h2 class="netflix-title text-4xl md:text-6xl mb-4 md:mb-6 text-white">The Cause</h2>
+                <p class="text-base md:text-xl text-gray-300 mb-6 md:mb-10 font-typewriter">What caused Michael to fall asleep?</p>
+
+                <div class="bg-black/40 p-6 md:p-10 rounded mb-6 border border-gray-700 max-w-3xl mx-auto shadow-inner">
+                    <p class="text-lg md:text-2xl font-light text-white italic font-typewriter">"Michael ate a huge chicken <span class="font-bold text-officeYellow border-b-2 border-officeYellow px-2 pb-1">_______</span> for lunch."</p>
+                </div>
+
+                <div class="flex flex-col gap-3 md:gap-4 max-w-2xl mx-auto w-full" id="quiz-1">
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-1', true)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 font-typewriter">A</div>
+                        pot pie
+                    </div>
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-1', false)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 font-typewriter">B</div>
+                        salad
+                    </div>
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-1', false)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 font-typewriter">C</div>
+                        sandwich
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 4: TYPEWRITER (Grammar) -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel text-center">
+                <div class="capsule mb-6" style="border-color:#F6E05E; color:#F6E05E; background: rgba(246,224,94,0.1);">Task 2: Irregular Verbs</div>
+                <h2 class="netflix-title text-4xl md:text-6xl mb-4 md:mb-6 text-white">The Typewriter</h2>
+                <p class="text-base md:text-xl text-gray-300 mb-8 md:mb-12 font-typewriter">Click the present verb on the typewriter keys to print the irregular past form.</p>
+                
+                <div class="flex justify-center gap-6 md:gap-10 mb-8 md:mb-12">
+                    <div class="flex flex-col items-center gap-3">
+                        <button class="typewriter-btn" onclick="activateTypewriter('EAT', 'ATE', this)">EAT</button>
+                    </div>
+                    <div class="flex flex-col items-center gap-3">
+                        <button class="typewriter-btn" onclick="activateTypewriter('FALL', 'FELL', this)">FALL</button>
+                    </div>
+                    <div class="flex flex-col items-center gap-3">
+                        <button class="typewriter-btn" onclick="activateTypewriter('HAVE', 'HAD', this)">HAVE</button>
+                    </div>
+                </div>
+
+                <div class="bg-officePaper p-6 md:p-8 rounded border border-gray-300 shadow-inner min-h-[100px] flex items-center justify-center text-center max-w-sm mx-auto">
+                    <p id="typewriter-output" class="text-2xl md:text-4xl font-bold text-officeDark font-typewriter">_</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 5: SYNTAX BUILDER -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel">
+                <div class="inline-flex items-center gap-2 text-officeBlue mb-3">
+                    <i data-lucide="layers" class="w-5 h-5"></i>
+                    <span class="font-bold tracking-widest text-sm uppercase font-typewriter">Task 3: Syntax</span>
+                </div>
+                <h2 class="netflix-title text-4xl md:text-6xl mb-4 md:mb-6 text-white">The Consequence</h2>
+                <p class="text-gray-300 mb-6 text-base md:text-xl font-typewriter">Unscramble the words to describe what happened to Michael.</p>
+
+                <div id="dropzone-1" class="sb-dropzone mb-6" ondragover="event.preventDefault()"></div>
+                
+                <div id="wordbank-1" class="flex flex-wrap justify-center gap-3 mb-8">
+                    <div class="sb-word" onclick="moveWord(this, 'dropzone-1', 'wordbank-1')">desk</div>
+                    <div class="sb-word" onclick="moveWord(this, 'dropzone-1', 'wordbank-1')">asleep</div>
+                    <div class="sb-word" onclick="moveWord(this, 'dropzone-1', 'wordbank-1')">He</div>
+                    <div class="sb-word" onclick="moveWord(this, 'dropzone-1', 'wordbank-1')">his</div>
+                    <div class="sb-word" onclick="moveWord(this, 'dropzone-1', 'wordbank-1')">fell</div>
+                    <div class="sb-word" onclick="moveWord(this, 'dropzone-1', 'wordbank-1')">at</div>
+                </div>
+
+                <button onclick="checkSentenceBuilder('dropzone-1', ['He', 'fell', 'asleep', 'at', 'his', 'desk'])" class="btn-netflix w-full">Verify Sentence</button>
+                <p id="sb-feedback-1" class="text-center mt-4 hidden font-bold text-xl font-typewriter"></p>
+            </div>
+        </section>
+
+        <!-- STEP 6: ERROR DETECTION (PAPER SHREDDER) -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel">
+                <div class="inline-flex items-center gap-2 text-netflixRed mb-3">
+                    <i data-lucide="scissors" class="w-5 h-5"></i>
+                    <span class="font-bold tracking-widest text-sm uppercase font-typewriter">Task 4: Quality Control</span>
+                </div>
+                <h2 class="netflix-title text-4xl md:text-6xl mb-4 md:mb-6 text-white">The Paper Shredder</h2>
+                <p class="text-gray-300 mb-8 text-base md:text-xl font-typewriter">Send the grammar error to the shredder! Click the INCORRECT irregular verb.</p>
+
+                <div class="text-center font-bold error-text bg-officePaper text-officeDark p-8 md:p-12 rounded border-l-4 border-netflixRed mb-6 shadow-xl">
+                    "He <span onclick="checkError(this, true, 'ate', 'error-feedback-1')" class="wrong-target">eated</span> <span onclick="checkError(this, false, '', 'error-feedback-1')">the</span> <span onclick="checkError(this, false, '', 'error-feedback-1')">entire</span> <span onclick="checkError(this, false, '', 'error-feedback-1')">family-sized</span> <span onclick="checkError(this, false, '', 'error-feedback-1')">pie</span>."
+                </div>
+                <p id="error-feedback-1" class="text-center text-gray-300 text-lg md:text-xl h-8 font-bold font-typewriter"></p>
+            </div>
+        </section>
+
+        <!-- STEP 7: PREPOSITIONS QUIZ -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel">
+                <div class="capsule mb-6" style="border-color:#F6E05E; color:#F6E05E; background:rgba(246,224,94,0.1);">Task 5: Time Management</div>
+                <h2 class="netflix-title text-4xl md:text-6xl mb-4 md:mb-6 text-white">The Schedule</h2>
+                <p class="text-base md:text-xl text-gray-300 mb-6 font-typewriter">Choose the correct time preposition (in, at, before).</p>
+
+                <div class="bg-black/40 p-6 md:p-8 rounded mb-6 border border-gray-700 shadow-inner">
+                    <p class="text-lg md:text-2xl font-light text-white italic font-typewriter text-center">"We are all trying to be very quiet so as to not wake him up <span class="font-bold text-officeBlue border-b-2 border-officeBlue px-2 pb-1">_______</span> 5:00 PM."</p>
+                </div>
+
+                <div class="flex flex-col gap-3 max-w-2xl mx-auto w-full" id="quiz-2">
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-2', false)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 font-typewriter">A</div>
+                        in
+                    </div>
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-2', false)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 font-typewriter">B</div>
+                        at
+                    </div>
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-2', true)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 font-typewriter">C</div>
+                        before
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 8: CHAT SCENARIO -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel">
+                <div class="inline-flex items-center gap-2 text-officeBlue mb-3">
+                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                    <span class="font-bold tracking-widest text-sm uppercase font-typewriter">Task 6: Office Gossip</span>
+                </div>
+                <h2 class="netflix-title text-4xl md:text-6xl mb-4 md:mb-6 text-white">Texting Pam</h2>
+                <p class="text-gray-300 mb-6 text-base md:text-xl font-typewriter">Jim texts Pam. Complete the sentence using the informal future plan.</p>
+
+                <div class="bg-black/60 p-6 rounded border border-gray-700 flex flex-col gap-4 mb-6 shadow-inner">
+                    <div class="chat-bubble chat-left">
+                        Pam: Did he wake up yet?
+                    </div>
+                    <div class="chat-bubble chat-right">
+                        Jim: No, he's still asleep. I'm ______ change the computer clock now.
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-3 max-w-2xl mx-auto w-full" id="quiz-3">
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-3', false)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 text-sm font-typewriter">A</div>
+                        go to
+                    </div>
+                    <div class="quiz-option" onclick="checkQuiz(this, 'quiz-3', true)">
+                        <div class="w-8 h-8 rounded-sm border-2 border-officeBlue flex items-center justify-center shrink-0 text-sm font-typewriter">B</div>
+                        gonna
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 9: WRITING CHALLENGE -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel">
+                <div class="inline-flex items-center gap-2 text-success mb-3">
+                    <i data-lucide="edit-3" class="w-5 h-5"></i>
+                    <span class="font-bold tracking-widest text-sm uppercase font-typewriter">Task 7: HR Report</span>
+                </div>
+                <h2 class="netflix-title text-4xl md:text-6xl mb-4 md:mb-6 text-white">Incident Report</h2>
+                <p class="text-gray-300 mb-4 text-base md:text-xl font-typewriter">Human Resources needs a report about what happened in the office yesterday.</p>
+                <p class="text-gray-400 mb-6 text-sm md:text-base font-typewriter">Write 2 sentences using irregular verbs in the past (e.g., ate, fell, had, went).</p>
+
+                <textarea id="writing-area" class="w-full h-32 md:h-40 bg-officePaper text-officeDark border-2 border-gray-400 rounded p-4 text-base md:text-lg outline-none focus:border-officeBlue transition-all shadow-inner font-typewriter font-bold" placeholder="Yesterday, Michael..."></textarea>
+                
+                <button onclick="submitHomework()" id="save-btn" class="btn-netflix w-full mt-6">File Report</button>
+                <p id="save-feedback" class="text-center mt-4 hidden font-bold text-lg text-success font-typewriter">Report Filed to HR.</p>
+            </div>
+        </section>
+
+        <!-- STEP 10: COMPLETE -->
+        <section class="step-container flex-col" data-bg="">
+            <div class="glass-panel text-center border-t-8 border-officeBlue">
+                <div class="w-20 h-20 bg-success rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(43,147,72,0.6)]">
+                    <i data-lucide="briefcase" class="w-10 h-10 text-white"></i>
+                </div>
+                <h2 class="netflix-title text-[4rem] md:text-[6rem] text-white leading-none mb-4">Assessment Complete</h2>
+                <p class="text-lg md:text-2xl text-officeYellow mb-8 uppercase tracking-widest font-bold font-typewriter">Grammar skills verified.</p>
+                
+                <button onclick="window.close()" class="btn-netflix bg-officeGray hover:bg-gray-600 text-white w-full md:w-auto">Close Window & Clock Out</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="h-16 md:h-20 bg-[#0B1C2E] border-t border-gray-800 flex justify-between items-center px-4 md:px-8 shrink-0 relative z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+        <button id="btn-prev" onclick="prevStep()" class="px-4 py-2 border border-gray-600 text-gray-300 hover:text-white hover:bg-white/10 transition-all rounded uppercase font-bold text-xs md:text-sm tracking-widest disabled:opacity-30 flex items-center gap-2 font-typewriter">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i> <span class="hidden sm:inline">Back</span>
+        </button>
+        
+        <div class="text-xs md:text-sm text-gray-500 font-bold tracking-widest uppercase font-typewriter">
+            Task <span id="current-step-display" class="text-white mx-1">1</span> / 10
+        </div>
+
+        <button id="btn-next" onclick="nextStep()" class="px-4 py-2 bg-netflixRed text-white hover:bg-red-700 transition-all rounded uppercase font-bold text-xs md:text-sm tracking-widest disabled:opacity-30 flex items-center gap-2 shadow-[0_0_10px_rgba(229,9,20,0.4)] font-typewriter">
+            <span class="hidden sm:inline">Next</span> <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // System State
+        let currentStep = 0;
+        let steps = [];
+        let progressBar, stepDisplay, btnPrev, btnNext;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            steps = document.querySelectorAll('.step-container');
+            progressBar = document.getElementById('progress-bar');
+            stepDisplay = document.getElementById('current-step-display');
+            btnPrev = document.getElementById('btn-prev');
+            btnNext = document.getElementById('btn-next');
+            updateUI();
+        });
+
+        // --- Navigation Logic ---
+        function updateUI() {
+            if (!steps || steps.length === 0) return;
+            
+            steps.forEach((s, i) => {
+                if(i === currentStep) s.classList.add('active');
+                else s.classList.remove('active');
+            });
+            
+            if (progressBar) {
+                progressBar.style.width = `${(currentStep / (steps.length - 1)) * 100}%`;
+            }
+            if (stepDisplay) stepDisplay.innerText = currentStep + 1;
+            if (btnPrev) btnPrev.disabled = currentStep === 0;
+            if (btnNext) btnNext.style.display = currentStep === steps.length - 1 ? 'none' : 'flex';
+        }
+
+        function nextStep() { if (currentStep < steps.length - 1) { currentStep++; updateUI(); } }
+        function prevStep() { if (currentStep > 0) { currentStep--; updateUI(); } }
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowRight') nextStep();
+            if(e.key === 'ArrowLeft') prevStep();
+        });
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => console.log(e));
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+
+        // --- Interactive Grammar / Quiz Logic ---
+        function checkQuiz(element, quizId, isCorrect) {
+            const container = document.getElementById(quizId);
+            if (!container) return;
+            if(container.classList.contains('answered')) return;
+
+            container.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'incorrect');
+            });
+
+            if(isCorrect) {
+                element.classList.add('correct');
+                container.classList.add('answered');
+                setTimeout(() => nextStep(), 1200);
+            } else {
+                element.classList.add('incorrect');
+            }
+        }
+
+        // --- Typewriter Logic ---
+        let typeKeysCount = 0;
+        function activateTypewriter(present, past, btnElement) {
+            const output = document.getElementById('typewriter-output');
+            if(!btnElement.classList.contains('activated')) {
+                btnElement.classList.add('activated');
+                if (output) output.innerText = past;
+                typeKeysCount++;
+                if(typeKeysCount === 3) {
+                    setTimeout(() => nextStep(), 1500);
+                }
+            } else {
+                if (output) output.innerText = past;
+            }
+        }
+
+        // --- Syntax Builder Logic ---
+        function moveWord(element, dropzoneId, wordbankId) {
+            const dropzone = document.getElementById(dropzoneId);
+            const wordbank = document.getElementById(wordbankId);
+            if (!dropzone || !wordbank) return;
+            
+            dropzone.classList.remove('correct', 'incorrect');
+            if (element.parentElement.id === wordbankId) dropzone.appendChild(element);
+            else wordbank.appendChild(element);
+        }
+
+        function checkSentenceBuilder(dropzoneId, correctArray) {
+            const dropzone = document.getElementById(dropzoneId);
+            if(!dropzone || dropzone.classList.contains('answered')) return;
+
+            const words = Array.from(dropzone.children).map(child => child.innerText);
+            const feedbackId = 'sb-feedback-' + dropzoneId.split('-')[1];
+            const feedback = document.getElementById(feedbackId);
+            if (feedback) feedback.classList.remove('hidden');
+
+            if (words.length !== correctArray.length) {
+                dropzone.className = 'sb-dropzone incorrect mb-6';
+                if (feedback) {
+                    feedback.innerText = "Use all the words.";
+                    feedback.className = "text-center mt-4 text-netflixRed font-bold text-xl font-typewriter";
+                }
+                return;
+            }
+
+            if (words.every((val, i) => val === correctArray[i])) {
+                dropzone.className = 'sb-dropzone correct mb-6';
+                if (feedback) {
+                    feedback.innerText = "Syntax Approved.";
+                    feedback.className = "text-center mt-4 text-success font-bold text-xl font-typewriter";
+                }
+                dropzone.classList.add('answered');
+                setTimeout(() => nextStep(), 1500);
+            } else {
+                dropzone.className = 'sb-dropzone incorrect mb-6';
+                if (feedback) {
+                    feedback.innerText = "Incorrect order. Try again.";
+                    feedback.className = "text-center mt-4 text-netflixRed font-bold text-xl font-typewriter";
+                }
+            }
+        }
+
+        // --- Error Detection Logic ---
+        function checkError(element, isActualError, correctWord, feedbackId) {
+            const container = element.parentElement;
+            if(!container || container.classList.contains('answered')) return;
+            
+            container.querySelectorAll('span').forEach(s => s.className = '');
+            const feedback = document.getElementById(feedbackId);
+            
+            if(isActualError) {
+                element.classList.add('wrong-clicked');
+                element.innerText = correctWord;
+                if (feedback) {
+                    feedback.innerText = "Fixed. Grammar restored.";
+                    feedback.style.color = "#2b9348";
+                }
+                container.classList.add('answered');
+                setTimeout(() => nextStep(), 2000);
+            } else {
+                element.classList.add('correct-clicked');
+                if (feedback) {
+                    feedback.innerText = "Word is correct. Keep looking.";
+                    feedback.style.color = "#E53E3E";
+                }
+            }
+        }
+
+        // --- Homework Submission ---
+        function submitHomework() {
+            const textArea = document.getElementById('writing-area');
+            if(textArea && textArea.value.trim().length > 15) {
+                const btn = document.getElementById('save-btn');
+                const feedback = document.getElementById('save-feedback');
+                
+                if(btn) {
+                    btn.innerHTML = 'Report Filed';
+                    btn.style.backgroundColor = '#2b9348';
+                    btn.style.boxShadow = '0 0 20px rgba(43,147,72,0.6)';
+                    btn.disabled = true;
+                }
+                if(feedback) feedback.classList.remove('hidden');
+                
+                setTimeout(() => nextStep(), 1500);
+            } else {
+                alert("Please write the HR report before filing it.");
+            }
+        }
+    </script>
+</body>
+</html>
